@@ -1,0 +1,111 @@
+Practicle Machine Learning (Writeup)
+ 
+
+Goal:
+ 
+The goal of your project is to predict the Classe Variable in the train dataset and implement the learned algorithm on the test dataset.
+ 
+
+The Approach:
+ 
+My Approach to the problem is very simple. First we will get rid of the variables having high missing values. After making sure that, now we have variables which do not have any missing values we will look for variables with very high correlation, because these highly correlated varibles can lead to multicollinearity which can increase miss classification error rate. Now as of now we have only 32 Variables that can used for prediction.
+ 
+The next big quest is choosing the right algorithm which learns from the data to its best. Without much effort and extensively exploring the forums I found out that randomForest will be the best choice for the data, which uses the bragging method that is a high variance, low bias technique.
+ 
+The learned algorithm from this data is then used to predict the test data.
+ 
+** Note: I first took the approach of PCA but find it of no use. - Please create “C:\Usersmachinelearning\” directory in your D: drive - Please create “submission files” folder with the above diretory to store output ### Taking you along with the code
+ 
+
+Importing the train and test dataset into the R:
+  ## Loading required package: lattice
+ ## Loading required package: ggplot2
+ ## Warning: package 'corrplot' was built under R version 3.0.3
+ ## randomForest 4.6-7
+ ## Type rfNews() to see new features/changes/bug fixes.
+ 
+ file.loc<-"C:\\Users\rashmi\documents\practicle_machine_learning\\"
+ setwd(paste0(file.loc,"submission files"))
+ train<-read.csv(paste0(file.loc,"pml-training.csv"),stringsAsFactor=FALSE,skip=0,fill 
+                                                =NA,comment.char="#")
+ test<-read.csv(paste0(file.loc,"pml-testing.csv")) 
+
+Removing Missing data Variables:
+ 
+The train dataset consist of 160 variables and 19622 observations from which we have to learn.
+ 
+(names(train)) # No.. of Varaibles
+ ## [1] 160 
+nrow(train) # No. of Observations
+ ## [1] 19622
+
+
+var<-names(train)[apply(train,2,function(x) table(is.na(x))[1]==19622)]   
+train2<-train[,var]
+test2<-test[,var[-length(var)]] 
+Now, when we see the variables we still have some variables with “” as value. Luckly we have a pattern of missing value within variables. Further we reduced our variables and kept only the numeric variables giving HAR information.
+ 
+*Note : There is no need of creating the data frame again and again. I have created this only to bring clear picture for my approach.
+ var2<-melt(apply(train2,2,function(x) sum(ifelse(x=="",1,0)))==0)
+select.var<-rownames(var2)[var2$value==TRUE]
+train3<-train2[,select.var]
+test3<-test2[,select.var[-length(select.var)]]
+train4<-train3[,names(train3[-c(1:7,length(train3))])] # only considering numeric 
+                                                         variable from HAR sensor
+test4<-test3[,names(test3[-c(1:7)])] 
+Now, we have to look for correlations within numeric variables to remove multicollinearity.
+    correlations <- cor(train4)                         # finding correlations 
+   corrplot(correlations,order = "hclust",tl.cex = .5) # plotting correlation matrix of 
+                                                                     variables 
+plot of chunk unnamed-chunk-5
+  highCorr<-findCorrlation(correlations,cutoff = .75) # finding variables with high correlation
+ predictor <- train4[,-highCorr]                     # dataframe of train predictors
+ filtered.test4 <- test4[,-highCorr]                 # dataframe of test predictors
+ classe<-train3$classe                               # target variable
+ trainData<-cbind(classe,predictor)                #training dataset ready forprediction 
+Now, we have variables which are good for prediction.
+ 
+
+Random Forest Algorithm
+  rfModel <- randomForest(classe ~ .,data = trainData,importance = TRUE,ntrees = 10)
+ print(rfModel)                            # Confusion Matrix showing the accuracy
+
+
+
+ ## Call:
+ ##  randomForest(formula = classe ~ .,data = trainData, importance = TRUE,ntrees =  10) 
+ ##                Type of random forest: classification
+ ##                      Number of trees: 500
+ ## No. of variables tried at each split: 5
+ ##         OOB estimate of  error rate: 0.42%
+
+ ## Confusion matrix:
+ ##      A    B    C    D    E class.error
+ ## A 5577    2    0    0    1   0.0005376
+ ## B   10 3781    5    0    1   0.0042139
+ ## C    0   17 3392   13    0   0.0087668
+ ## D    0    0   27 3186    3   0.0093284
+ ## E    0    0    0    4 3603   0.0011090
+
+
+
+
+par(mar=c(3,4,4,4))                               
+plot(rfModel)                                    # Error rate plot for each class   
+plot of chunk unnamed-chunk-6
+ varImpPlot(rfModel,cex=.5)                       # Importance of Variable on Gini Index 
+plot of chunk unnamed-chunk-6
+ out.test<-predict(rfModel,filtered.test4)        # predicting the test set 
+
+Saving the output for Course Project: Submission
+  answers<- as.vector(out.test)
+
+ pml_write_files = function(x){
+    n = length(x)
+    for(i in 1:n){
+      filename = paste0("problem_id_",i,".txt")
+      write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+    }
+ }
+
+pml_write_files(answers) 
