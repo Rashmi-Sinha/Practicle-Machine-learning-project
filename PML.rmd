@@ -14,7 +14,7 @@ With the availability of low cost accelerometers, there are many opportunities t
 Download data and necessary packages
 ```{r warning=FALSE}
 #set working directory
-setwd("C:\Users\rashmi\documents\Github\Machine learning")
+setwd("C:\Users\rashmi\documents\Github\Practicle-Machine-learning-project\")
 
 library(caret)
 
