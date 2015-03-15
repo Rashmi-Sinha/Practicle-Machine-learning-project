@@ -2,7 +2,7 @@ Prediction of Weight Lifting Style
 ====================================
 
 ### Practical Machine Learning - Course Project 1
-### Rashmi Sinha
+### Leticia Rodriguez Brey
 
 
 # Introduction
@@ -14,7 +14,7 @@ With the availability of low cost accelerometers, there are many opportunities t
 Download data and necessary packages
 ```{r warning=FALSE}
 #set working directory
-setwd("C:\Users\rashmi\documents\Github\Machine learning")
+setwd("D:/Documents/Cursos/Machine learning")
 
 library(caret)
 
